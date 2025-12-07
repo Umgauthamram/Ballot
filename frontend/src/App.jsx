@@ -9,7 +9,7 @@ import NotFound from './pages/NotFound';
 
 import StudentDashboard from './pages/StudentDashboard';
 import AdminPanel from './pages/AdminPanel';
-import Settings from './pages/Settings';
+import Settings from './pages/settings';
 
 import ProtectedRoute from './protectedRoute';
 
