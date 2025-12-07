@@ -12,8 +12,11 @@ const __dirname = path.dirname(__filename);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, '../uploads/')),
-  filename: (req, file, cb) => cb(null, `${req.user.id}${path.extname(file.originalname)}`)
+  filename: (req, file, cb) => {
+    cb(null, `${req.user.id}_${Date.now()}${path.extname(file.originalname)}`);
+  }
 });
+
 const upload = multer({ storage });
 
 router.post('/upload-id', protect, upload.single('idCard'), uploadId);
