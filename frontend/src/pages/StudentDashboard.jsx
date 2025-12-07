@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../store';
-import  Button  from '../ui/button';
-import  LoadingOverlay  from '../Layout/LoadingOverlay';
+import Button from '../ui/button';
+import LoadingOverlay from '../Layout/LoadingOverlay';
 import {
   AlertTriangle,
   Upload,
@@ -11,7 +11,9 @@ import {
   CheckCircle,
   Calendar,
   History,
-  ArrowLeft
+  ArrowLeft,
+  Trophy,
+  Crown
 } from 'lucide-react';
 
 const StudentDashboard = () => {
@@ -25,6 +27,7 @@ const StudentDashboard = () => {
 
   if (!currentUser) return null;
 
+  // Filter Logic
   const eligiblePolls = polls.filter(poll =>
     (poll.eligibility === 'ALL' || poll.eligibility === currentUser.department) &&
     !currentUser.votedPollIds.includes(poll.id)
@@ -32,7 +35,17 @@ const StudentDashboard = () => {
 
   const activePolls = eligiblePolls.filter(p => p.status === 'ACTIVE');
   const upcomingPolls = eligiblePolls.filter(p => p.status === 'UPCOMING');
+  
+  const endedPolls = polls.filter(p => p.status === 'ENDED' && 
+    (p.eligibility === 'ALL' || p.eligibility === currentUser.department)
+  );
+
   const myHistory = voteHistory.filter(h => currentUser.votedPollIds.includes(h.pollId));
+
+  // Helper: Calculate Total Votes
+  const getTotalVotes = (poll) => {
+    return poll.candidates.reduce((acc, c) => acc + c.voteCount, 0);
+  };
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -53,6 +66,7 @@ const StudentDashboard = () => {
     setActiveTab('HISTORY');
   };
 
+  // 1. Unverified State
   if (currentUser.status === 'unverified') {
     return (
       <div className="max-w-2xl mx-auto space-y-10 animate-in slide-in-from-bottom duration-700">
@@ -131,25 +145,25 @@ const StudentDashboard = () => {
       <div className="flex border-b border-white/20 overflow-x-auto scrollbar-thin">
         <button
           onClick={() => { setActiveTab('ACTIVE'); setSelectedPoll(null); }}
-          className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${
-            activeTab === 'ACTIVE' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'
-          }`}
+          className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${activeTab === 'ACTIVE' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
         >
           <Vote size={18} /> Active ({activePolls.length})
         </button>
         <button
           onClick={() => { setActiveTab('UPCOMING'); setSelectedPoll(null); }}
-          className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${
-            activeTab === 'UPCOMING' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'
-          }`}
+          className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${activeTab === 'UPCOMING' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
         >
           <Calendar size={18} /> Upcoming ({upcomingPolls.length})
         </button>
         <button
+          onClick={() => { setActiveTab('RESULTS'); setSelectedPoll(null); }}
+          className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${activeTab === 'RESULTS' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
+        >
+          <Trophy size={18} /> Results ({endedPolls.length})
+        </button>
+        <button
           onClick={() => { setActiveTab('HISTORY'); setSelectedPoll(null); }}
-          className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${
-            activeTab === 'HISTORY' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'
-          }`}
+          className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${activeTab === 'HISTORY' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
         >
           <History size={18} /> History
         </button>
@@ -158,7 +172,7 @@ const StudentDashboard = () => {
       {/* Main Content */}
       <div className="min-h-[500px]">
 
-        {/* Active Polls Grid */}
+        {/* 1. Active Polls List */}
         {activeTab === 'ACTIVE' && !selectedPoll && (
           activePolls.length === 0 ? (
             <div className="text-center py-32 text-gray-500 uppercase tracking-widest">
@@ -195,7 +209,7 @@ const StudentDashboard = () => {
           )
         )}
 
-        {/* Voting Booth */}
+        {/* 2. Voting Booth (Active) */}
         {selectedPoll && (
           <div>
             <button
@@ -210,37 +224,55 @@ const StudentDashboard = () => {
             </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {selectedPoll.candidates.map(candidate => (
-                <div
-                  key={candidate.id}
-                  onClick={() => setConfirmCandidate(candidate.id)}
-                  className={`border-2 p-10 cursor-pointer transition-all duration-300 ${
-                    confirmCandidate === candidate.id
-                      ? 'bg-white text-black border-white'
-                      : 'border-gray-700 hover:border-white bg-black'
-                  }`}
-                >
-                  <h3 className="text-2xl font-bold uppercase mb-6">
-                    {candidate.name}
-                  </h3>
-                  <p className={`text-sm leading-relaxed mb-10 ${
-                    confirmCandidate === candidate.id ? 'text-gray-800' : 'text-gray-400'
-                  }`}>
-                    "{candidate.manifesto}"
-                  </p>
-                  <div className="flex justify-end">
-                    <div className={`w-8 h-8 border-2 flex items-center justify-center transition-all ${
-                      confirmCandidate === candidate.id
-                        ? 'border-black bg-black'
-                        : 'border-gray-600'
-                    }`}>
-                      {confirmCandidate === candidate.id && (
-                        <div className="w-4 h-4 bg-white" />
-                      )}
+              {selectedPoll.candidates.map(candidate => {
+                const cId = candidate._id || candidate.id;
+                const isSelected = confirmCandidate === cId;
+                
+                const totalVotes = getTotalVotes(selectedPoll);
+                const percentage = totalVotes === 0 ? 0 : Math.round((candidate.voteCount / totalVotes) * 100);
+
+                return (
+                  <div
+                    key={cId}
+                    onClick={() => setConfirmCandidate(cId)}
+                    className={`border-2 p-10 cursor-pointer transition-all duration-300 relative overflow-hidden flex flex-col justify-between ${isSelected
+                        ? 'bg-white text-black border-white'
+                        : 'border-gray-700 hover:border-white bg-black'
+                      }`}
+                  >
+                    <div>
+                      <h3 className="text-2xl font-bold uppercase mb-6 relative z-10">
+                        {candidate.name}
+                      </h3>
+                      <p className={`text-sm leading-relaxed mb-6 relative z-10 ${isSelected ? 'text-gray-800' : 'text-gray-400'}`}>
+                        "{candidate.manifesto}"
+                      </p>
+                    </div>
+
+                    <div className="space-y-4 relative z-10">
+                      <div className="flex justify-between items-end">
+                        <span className={`text-xs font-bold font-mono ${isSelected ? 'text-gray-600' : 'text-gray-500'}`}>
+                          LIVE TRACKING
+                        </span>
+                        <div className={`w-8 h-8 border-2 flex items-center justify-center transition-all ${isSelected ? 'border-black bg-black' : 'border-gray-600'}`}>
+                          {isSelected && <div className="w-4 h-4 bg-white" />}
+                        </div>
+                      </div>
+
+                      {/* WHITE STATUS BAR */}
+                      <div className="w-full h-4 bg-gray-800 border border-gray-600">
+                        <div 
+                          className={`h-full transition-all duration-1000 ${isSelected ? 'bg-black' : 'bg-white'}`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                      <div className={`text-right font-mono text-xs ${isSelected ? 'text-gray-600' : 'text-gray-400'}`}>
+                        {candidate.voteCount} VOTES ({percentage}%)
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mt-12 text-center">
@@ -256,7 +288,7 @@ const StudentDashboard = () => {
           </div>
         )}
 
-        {/* Upcoming */}
+        {/* 3. Upcoming */}
         {activeTab === 'UPCOMING' && (
           upcomingPolls.length === 0 ? (
             <div className="text-center py-32 text-gray-600 uppercase tracking-widest">
@@ -277,7 +309,83 @@ const StudentDashboard = () => {
           )
         )}
 
-        {/* Vote History */}
+        {/* 4. RESULTS (ENDED POLLS) - FIXED CROWN LOGIC */}
+        {activeTab === 'RESULTS' && (
+          endedPolls.length === 0 ? (
+            <div className="text-center py-32 text-gray-600 uppercase tracking-widest">
+              No elections have ended yet
+            </div>
+          ) : (
+            <div className="space-y-12">
+              {endedPolls.map(poll => {
+                const totalVotes = getTotalVotes(poll);
+                
+                // Determine Winner Object
+                const winner = poll.candidates.reduce((prev, current) => 
+                  (prev.voteCount > current.voteCount) ? prev : current
+                , poll.candidates[0]);
+
+                // Normalize Winner ID for comparison
+                const winnerId = winner._id || winner.id;
+
+                return (
+                  <div key={poll.id} className="border border-white/20 p-8 bg-black/40">
+                    <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                      <h3 className="text-3xl font-bold uppercase">{poll.title}</h3>
+                      <span className="bg-red-900/50 text-red-400 text-xs px-4 py-2 uppercase font-bold border border-red-800">
+                        Election Ended
+                      </span>
+                    </div>
+
+                    <div className="space-y-6">
+                      {poll.candidates.map(candidate => {
+                        // Normalize Candidate ID
+                        const cId = candidate._id || candidate.id;
+                        
+                        // STRICT COMPARISON
+                        const isWinner = cId === winnerId && totalVotes > 0; // Check totalVotes to avoid crown on 0-0 ties if preferred
+                        const percentage = totalVotes === 0 ? 0 : Math.round((candidate.voteCount / totalVotes) * 100);
+
+                        return (
+                          <div key={cId} className="group">
+                            <div className="flex justify-between items-center mb-2">
+                              <div className="flex items-center gap-3">
+                                <span className={`text-xl font-bold uppercase ${isWinner ? 'text-yellow-400' : 'text-white'}`}>
+                                  {candidate.name}
+                                </span>
+                                {isWinner && (
+                                  <Crown className="text-yellow-400 fill-yellow-400 animate-pulse" size={24} />
+                                )}
+                              </div>
+                              <span className="font-mono text-gray-400">
+                                {candidate.voteCount} Votes ({percentage}%)
+                              </span>
+                            </div>
+
+                            {/* Result Bar */}
+                            <div className="w-full h-6 bg-gray-900 border border-gray-700 relative">
+                              <div 
+                                className={`h-full transition-all duration-1000 ${isWinner ? 'bg-yellow-400' : 'bg-white'}`}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-white/10 text-center">
+                      <p className="text-sm text-gray-500 uppercase tracking-widest">
+                        Winner Declared: <span className="text-white font-bold">{winner.name}</span>
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        )}
+
         {activeTab === 'HISTORY' && (
           <div className="border border-white/20 overflow-hidden">
             <table className="w-full text-left">

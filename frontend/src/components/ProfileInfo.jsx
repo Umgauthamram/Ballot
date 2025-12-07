@@ -27,10 +27,10 @@ const ProfileInfo = ({ user }) => {
           <label className="block text-xs text-gray-500 uppercase mb-1">Email Address</label>
           <div className="border-b border-gray-700 pb-1 text-white">{user.email}</div>
         </div>
-        <div>
+        {/* <div>
           <label className="block text-xs text-gray-500 uppercase mb-1">Institution</label>
           <div className="border-b border-gray-700 pb-1 text-white">{user.collegeName}</div>
-        </div>
+        </div> */}
         {!user.isAdmin && (
           <div>
             <label className="block text-xs text-gray-500 uppercase mb-1">Department</label>
