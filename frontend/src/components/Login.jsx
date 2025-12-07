@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../store';
-import Button from '../ui/button';
+import Button from '../ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronLeft } from 'lucide-react';
 import { Link } from "react-router-dom";

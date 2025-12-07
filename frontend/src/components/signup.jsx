@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../store';
 import { useNavigate, Link } from 'react-router-dom';
-import Button from '../ui/button';
+import Button from '../ui/Button';
 import { ChevronLeft } from 'lucide-react';
 
 const departments = ['GENERAL', 'COMPUTER_SCIENCE', 'ENGINEERING', 'ARTS', 'BUSINESS'];

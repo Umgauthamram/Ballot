@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../store';
 import Layout from '../Layout/layout'; 
-import Button from '../ui/button';
+import Button from '../ui/Button';
 import AuditLog from '../components/AuditLog';
 import {
   Check,

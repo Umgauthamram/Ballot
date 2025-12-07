@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../store';
-import  Button  from '../ui/button';
+import  Button  from '../ui/Button';
 import ProfileInfo from '../components/ProfileInfo';
 import ChangePasswordForm from '../components/ChangePassword';
 import { Link } from 'react-router-dom';
