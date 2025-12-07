@@ -14,10 +14,10 @@ const NotFound = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-8 bg-black">
       <h1 className="text-8xl font-bold uppercase mb-8 text-red-600 animate-pulse">
-        403
+        404
       </h1>
       <h2 className="text-4xl font-bold uppercase mb-6 text-white">
-        Access Restricted
+        PAGE NOT FOUND
       </h2>
       <p className="text-lg text-gray-400 uppercase tracking-widest mb-12 max-w-md">
         You do not have clearance for this sector.
