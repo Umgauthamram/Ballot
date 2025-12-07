@@ -1,0 +1,5 @@
+{
+  "name": "Ballot",
+  "description": "A high-tech, brutalist, monochrome voting system for campus elections featuring admin verification and simulated blockchain audit logs.",
+  "requestFramePermissions": []
+}
