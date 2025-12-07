@@ -12,7 +12,8 @@ const pollSchema = mongoose.Schema({
   eligibility: { type: String, default: 'ALL' },
   status: { type: String, enum: ['UPCOMING', 'ACTIVE', 'ENDED'], default: 'UPCOMING' },
   candidates: [candidateSchema],
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  blockchainId: { type: String }
 }, { timestamps: true });
 
 export default mongoose.model('Poll', pollSchema);

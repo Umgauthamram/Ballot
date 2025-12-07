@@ -14,14 +14,19 @@ import {
   StopCircle,
   Plus,
   ArrowLeft,
-  Crown // Import Crown
+  Crown,
+  Mail,
+  CreditCard,
+  Building,
+  Hash
 } from 'lucide-react';
 
 const AdminPanel = () => {
   const { users, verifyUser, transactions, polls, createPoll, togglePollStatus } = useApp();
-  // Changed default tab to POLLS as requested (first in order)
   const [activeTab, setActiveTab] = useState('POLLS');
   const [selectedIdImage, setSelectedIdImage] = useState(null);
+  const [viewStudent, setViewStudent] = useState(null);
+
   const [isCreatingPoll, setIsCreatingPoll] = useState(false);
   const [newPoll, setNewPoll] = useState({
     title: '',
@@ -29,6 +34,14 @@ const AdminPanel = () => {
     eligibility: 'ALL',
     candidatesStr: ''
   });
+
+  const getFullImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path; 
+    const cleanPath = path.replace(/\\/g, '/');
+    const formattedPath = cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
+    return `http://localhost:5000${formattedPath}`; 
+  };
 
   const pendingUsers = users.filter(u => u.status === 'pending');
   const studentCount = users.filter(u => !u.isAdmin).length;
@@ -56,7 +69,6 @@ const AdminPanel = () => {
     setNewPoll({ title: '', description: '', eligibility: 'ALL', candidatesStr: '' });
   };
 
-  // Helper to get winner
   const getWinner = (poll) => {
     if (!poll.candidates || poll.candidates.length === 0) return null;
     return poll.candidates.reduce((prev, current) => 
@@ -74,7 +86,7 @@ const AdminPanel = () => {
   
         <div className="lg:col-span-2 flex flex-col gap-6">
 
-          {/* NAVBAR REORDERED: POLLS -> VERIFY -> STUDENTS */}
+          {/* NAVBAR */}
           <div className="flex border-b border-white/20 overflow-x-auto bg-black/50">
             <button
               onClick={() => setActiveTab('POLLS')}
@@ -107,8 +119,7 @@ const AdminPanel = () => {
             {/* --- POLL MANAGER TAB --- */}
             {activeTab === 'POLLS' && (
               <div className="space-y-10">
- 
-            {isCreatingPoll ? (
+                {isCreatingPoll ? (
                   <div className="border-2 border-white/60 p-10 bg-black/60">
                     <div className="flex justify-between items-center mb-8">
                       <h3 className="text-3xl font-bold uppercase">New Election Protocol</h3>
@@ -219,7 +230,6 @@ const AdminPanel = () => {
                             </div>
                           </div>
 
-                          {/* Poll Bars / Results */}
                           <div className="space-y-5">
                             {poll.candidates.map(c => {
                               const pct = totalVotes > 0 ? ((c.voteCount / totalVotes) * 100).toFixed(1) : 0;
@@ -230,7 +240,6 @@ const AdminPanel = () => {
                                 <div key={cId} className="flex flex-col gap-2">
                                   <div className="flex justify-between items-center text-base">
                                     <div className="flex items-center gap-2">
-                                      {/* CROWN ICON FOR WINNER */}
                                       {isWinner && <Crown size={20} className="text-yellow-400 fill-yellow-400 animate-pulse" />}
                                       <span className={`w-40 truncate font-medium ${isWinner ? 'text-yellow-400 font-bold' : ''}`}>
                                         {c.name}
@@ -243,7 +252,7 @@ const AdminPanel = () => {
                                     <div
                                       className={`absolute inset-0 transition-all duration-1000 ${
                                         isWinner 
-                                          ? 'bg-yellow-400' // Gold bar for winner
+                                          ? 'bg-yellow-400'
                                           : 'bg-gradient-to-r from-green-500 to-green-400'
                                       }`}
                                       style={{ width: `${pct}%` }}
@@ -254,7 +263,6 @@ const AdminPanel = () => {
                             })}
                           </div>
 
-                          {/* Winner Summary (Only if Ended) */}
                           {poll.status === 'ENDED' && winner && (
                             <div className="mt-6 pt-6 border-t border-white/10 text-center">
                               <p className="text-sm text-gray-500 uppercase tracking-widest">
@@ -262,7 +270,6 @@ const AdminPanel = () => {
                               </p>
                             </div>
                           )}
-
                         </div>
                       );
                     })
@@ -289,10 +296,10 @@ const AdminPanel = () => {
                       <div className="flex items-center gap-8">
                         <div
                           className="w-24 h-24 bg-gray-800 border-2 border-gray-600 cursor-zoom-in overflow-hidden group relative"
-                          onClick={() => setSelectedIdImage(user.idImageUrl)}
+                       onClick={() => setSelectedIdImage(getFullImageUrl(user.idImageUrl))}
                         >
                           {user.idImageUrl ? (
-                            <img src={user.idImageUrl} alt="ID" className="w-full h-full object-cover" />
+                            <img src={getFullImageUrl(user.idImageUrl)} alt="ID" className="w-full h-full object-cover" />
                           ) : (
                             <div className="flex items-center justify-center h-full text-gray-500">
                               <List size={28} />
@@ -329,10 +336,10 @@ const AdminPanel = () => {
               </div>
             )}
 
-            {/* --- REGISTRY TAB --- */}
+            {/* --- REGISTRY TAB (WITH CLICKABLE ROWS) --- */}
             {activeTab === 'STUDENTS' && (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-base">
+                <table className="w-full text-left text-base border-collapse">
                   <thead className="bg-gray-900 border-b-4 border-white/30">
                     <tr>
                       <th className="p-6 uppercase text-sm text-gray-400">Name</th>
@@ -345,13 +352,17 @@ const AdminPanel = () => {
                     {users
                       .filter(u => !u.isAdmin)
                       .map(u => (
-                        <tr key={u.id} className="hover:bg-gray-900/50 transition-colors">
+                        <tr 
+                          key={u.id} 
+                          onClick={() => setViewStudent(u)}
+                          className="hover:bg-white/10 transition-colors cursor-pointer"
+                        >
                           <td className="p-6 font-bold uppercase text-lg">{u.name}</td>
                           <td className="p-6 font-mono text-gray-300">{u.studentId}</td>
                           <td className="p-6 text-sm uppercase">{u.department.replace('_', ' ')}</td>
                           <td className="p-6">
                             <span
-                              className={`inline-block px-6 py-2 text-sm uppercase font-bold border-2 ${
+                              className={`inline-block px-4 py-1 text-sm uppercase font-bold border ${
                                 u.status === 'verified'
                                   ? 'border-green-500 text-green-400'
                                   : u.status === 'pending'
@@ -383,6 +394,84 @@ const AdminPanel = () => {
           </div>
         </div>
 
+        {/* --- STUDENT OVERVIEW CARD MODAL --- */}
+        {viewStudent && (
+          <div
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 backdrop-blur-sm"
+            onClick={() => setViewStudent(null)}
+          >
+            {/* Prevent click inside modal from closing it */}
+            <div 
+              className="bg-black border-2 border-white w-full max-w-lg p-0 relative shadow-2xl animate-in zoom-in-95 duration-200"
+              onClick={e => e.stopPropagation()} 
+            >
+              {/* Header */}
+              <div className="bg-white text-black p-6 flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-bold uppercase tracking-tighter">{viewStudent.name}</h2>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className={`px-2 py-0.5 text-xs font-bold uppercase border border-black ${
+                      viewStudent.status === 'verified' ? 'bg-green-400' : 'bg-red-400'
+                    }`}>
+                      {viewStudent.status}
+                    </span>
+                    <span className="text-xs font-mono uppercase tracking-widest">
+                      Registered Student
+                    </span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setViewStudent(null)}
+                  className="p-2 hover:bg-black hover:text-white transition-colors border border-black"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-8 grid gap-8">
+                {/* ID Card Image */}
+                <div className="w-full aspect-video bg-gray-900 border border-gray-700 flex items-center justify-center overflow-hidden">
+                  {viewStudent.idImageUrl ? (
+                     <img 
+                       src={getFullImageUrl(viewStudent.idImageUrl)} 
+                       alt="Student ID" 
+                       className="w-full h-full object-contain"
+                     />
+                  ) : (
+                    <div className="text-gray-600 uppercase text-sm font-bold flex flex-col items-center gap-2">
+                       <CreditCard size={32} />
+                       No ID Document
+                    </div>
+                  )}
+                </div>
+
+                {/* Details Grid */}
+                <div className="space-y-4 font-mono text-sm">
+                  <div className="flex items-center gap-4 border-b border-gray-800 pb-2">
+                    <Hash size={16} className="text-gray-500" />
+                    <span className="text-gray-400 uppercase w-24">Student ID</span>
+                    <span className="text-white font-bold">{viewStudent.studentId}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 border-b border-gray-800 pb-2">
+                    <Building size={16} className="text-gray-500" />
+                    <span className="text-gray-400 uppercase w-24">Department</span>
+                    <span className="text-white">{viewStudent.department.replace('_', ' ')}</span>
+                  </div>
+
+                  <div className="flex items-center gap-4 border-b border-gray-800 pb-2">
+                    <Mail size={16} className="text-gray-500" />
+                    <span className="text-gray-400 uppercase w-24">Email</span>
+                    <span className="text-white">{viewStudent.email}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Existing ID Modal (Keep if needed for verification tab zooming) */}
         {selectedIdImage && (
           <div
             className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-10 cursor-zoom-out"
@@ -393,11 +482,9 @@ const AdminPanel = () => {
               alt="Student ID"
               className="max-w-full max-h-full border-8 border-white shadow-2xl"
             />
-            <p className="absolute bottom-12 left-1/2 -translate-x-1/2 text-gray-500 text-sm uppercase tracking-widest font-bold">
-              Click to close
-            </p>
           </div>
         )}
+
       </div>
     </Layout>
   );
