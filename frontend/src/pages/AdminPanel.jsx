@@ -1,7 +1,6 @@
-// src/pages/AdminPanel.jsx
 import React, { useState } from 'react';
 import { useApp } from '../store';
-import Layout from '../Layout/layout'; // ← Your main Layout with navbar
+import Layout from '../Layout/layout'; 
 import Button from '../ui/button';
 import AuditLog from '../components/AuditLog';
 import {
@@ -14,12 +13,14 @@ import {
   Play,
   StopCircle,
   Plus,
-  ArrowLeft
+  ArrowLeft,
+  Crown // Import Crown
 } from 'lucide-react';
 
 const AdminPanel = () => {
   const { users, verifyUser, transactions, polls, createPoll, togglePollStatus } = useApp();
-  const [activeTab, setActiveTab] = useState('VERIFY');
+  // Changed default tab to POLLS as requested (first in order)
+  const [activeTab, setActiveTab] = useState('POLLS');
   const [selectedIdImage, setSelectedIdImage] = useState(null);
   const [isCreatingPoll, setIsCreatingPoll] = useState(false);
   const [newPoll, setNewPoll] = useState({
@@ -55,21 +56,26 @@ const AdminPanel = () => {
     setNewPoll({ title: '', description: '', eligibility: 'ALL', candidatesStr: '' });
   };
 
+  // Helper to get winner
+  const getWinner = (poll) => {
+    if (!poll.candidates || poll.candidates.length === 0) return null;
+    return poll.candidates.reduce((prev, current) => 
+      (prev.voteCount > current.voteCount) ? prev : current
+    , poll.candidates[0]);
+  };
+
+  const getTotalVotes = (poll) => {
+    return poll.candidates.reduce((acc, c) => acc + c.voteCount, 0);
+  };
+
   return (
     <Layout>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-screen">
-        {/* LEFT: Main Admin Controls */}
+  
         <div className="lg:col-span-2 flex flex-col gap-6">
-          {/* Tabs */}
+
+          {/* NAVBAR REORDERED: POLLS -> VERIFY -> STUDENTS */}
           <div className="flex border-b border-white/20 overflow-x-auto bg-black/50">
-            <button
-              onClick={() => setActiveTab('VERIFY')}
-              className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${
-                activeTab === 'VERIFY' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'
-              }`}
-            >
-              <UserCheck size={18} /> Verification ({pendingUsers.length})
-            </button>
             <button
               onClick={() => setActiveTab('POLLS')}
               className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${
@@ -77,6 +83,14 @@ const AdminPanel = () => {
               }`}
             >
               <BarChart3 size={18} /> Poll Manager
+            </button>
+            <button
+              onClick={() => setActiveTab('VERIFY')}
+              className={`px-8 py-5 text-sm font-bold uppercase flex items-center gap-3 whitespace-nowrap transition-all ${
+                activeTab === 'VERIFY' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'
+              }`}
+            >
+              <UserCheck size={18} /> Verification ({pendingUsers.length})
             </button>
             <button
               onClick={() => setActiveTab('STUDENTS')}
@@ -88,72 +102,13 @@ const AdminPanel = () => {
             </button>
           </div>
 
-          {/* Tab Content */}
           <div className="flex-grow overflow-y-auto border border-white/20 bg-gray-900/20 p-6">
 
-            {/* VERIFICATION QUEUE */}
-            {activeTab === 'VERIFY' && (
-              <div className="space-y-6">
-                {pendingUsers.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-gray-600 py-32">
-                    <Check className="w-24 h-24 mb-8 opacity-30" />
-                    <p className="text-3xl uppercase tracking-widest font-bold">Queue Empty</p>
-                    <p className="text-sm mt-4">All submissions processed</p>
-                  </div>
-                ) : (
-                  pendingUsers.map(user => (
-                    <div
-                      key={user.id}
-                      className="border border-gray-700 bg-black p-8 flex flex-col md:flex-row items-center justify-between gap-8 hover:border-white transition-all"
-                    >
-                      <div className="flex items-center gap-8">
-                        <div
-                          className="w-24 h-24 bg-gray-800 border-2 border-gray-600 cursor-zoom-in overflow-hidden group relative"
-                          onClick={() => setSelectedIdImage(user.idImageUrl)}
-                        >
-                          {user.idImageUrl ? (
-                            <img src={user.idImageUrl} alt="ID" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="flex items-center justify-center h-full text-gray-500">
-                              <List size={28} />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                        <div>
-                          <div className="text-2xl font-bold uppercase">{user.name}</div>
-                          <div className="text-sm text-gray-400 font-mono mt-2">
-                            {user.studentId} • {user.department.replace('_', ' ')}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-6">
-                        <Button
-                          variant="secondary"
-                          onClick={() => verifyUser(user.id, false)}
-                          className="px-10 py-3 text-lg"
-                        >
-                          <X size={18} className="mr-2" /> Reject
-                        </Button>
-                        <Button
-                          onClick={() => verifyUser(user.id, true)}
-                          className="px-10 py-3 text-lg bg-green-900 hover:bg-green-800 border-green-700"
-                        >
-                          <Check size={18} className="mr-2" /> Approve
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
-            {/* POLL MANAGER */}
+            {/* --- POLL MANAGER TAB --- */}
             {activeTab === 'POLLS' && (
               <div className="space-y-10">
-                {/* Create Poll */}
- talento                {isCreatingPoll ? (
+ 
+            {isCreatingPoll ? (
                   <div className="border-2 border-white/60 p-10 bg-black/60">
                     <div className="flex justify-between items-center mb-8">
                       <h3 className="text-3xl font-bold uppercase">New Election Protocol</h3>
@@ -224,7 +179,6 @@ const AdminPanel = () => {
                   </div>
                 )}
 
-                {/* Poll List */}
                 <div className="space-y-8">
                   {polls.length === 0 ? (
                     <div className="text-center py-32 text-gray-600 uppercase tracking-widest text-2xl">
@@ -232,7 +186,9 @@ const AdminPanel = () => {
                     </div>
                   ) : (
                     polls.map(poll => {
-                      const totalVotes = poll.candidates.reduce((a, c) => a + c.voteCount, 0);
+                      const totalVotes = getTotalVotes(poll);
+                      const winner = getWinner(poll);
+                      const winnerId = winner ? (winner._id || winner.id) : null;
 
                       return (
                         <div key={poll.id} className="border border-white/40 p-8 hover:border-white transition-all bg-black/40">
@@ -263,24 +219,50 @@ const AdminPanel = () => {
                             </div>
                           </div>
 
-                          {/* Results */}
+                          {/* Poll Bars / Results */}
                           <div className="space-y-5">
                             {poll.candidates.map(c => {
                               const pct = totalVotes > 0 ? ((c.voteCount / totalVotes) * 100).toFixed(1) : 0;
+                              const cId = c._id || c.id;
+                              const isWinner = poll.status === 'ENDED' && cId === winnerId && totalVotes > 0;
+
                               return (
-                                <div key={c.id} className="flex items-center gap-6 text-base">
-                                  <span className="w-40 truncate font-medium">{c.name}</span>
-                                  <div className="flex-grow h-4 bg-gray-800 relative overflow-hidden">
+                                <div key={cId} className="flex flex-col gap-2">
+                                  <div className="flex justify-between items-center text-base">
+                                    <div className="flex items-center gap-2">
+                                      {/* CROWN ICON FOR WINNER */}
+                                      {isWinner && <Crown size={20} className="text-yellow-400 fill-yellow-400 animate-pulse" />}
+                                      <span className={`w-40 truncate font-medium ${isWinner ? 'text-yellow-400 font-bold' : ''}`}>
+                                        {c.name}
+                                      </span>
+                                    </div>
+                                    <span className="font-mono font-bold">{c.voteCount} ({pct}%)</span>
+                                  </div>
+                                  
+                                  <div className="w-full h-4 bg-gray-800 relative overflow-hidden">
                                     <div
-                                      className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-400 transition-all duration-1000"
+                                      className={`absolute inset-0 transition-all duration-1000 ${
+                                        isWinner 
+                                          ? 'bg-yellow-400' // Gold bar for winner
+                                          : 'bg-gradient-to-r from-green-500 to-green-400'
+                                      }`}
                                       style={{ width: `${pct}%` }}
                                     />
                                   </div>
-                                  <span className="w-20 text-right font-mono font-bold">{c.voteCount} ({pct}%)</span>
                                 </div>
                               );
                             })}
                           </div>
+
+                          {/* Winner Summary (Only if Ended) */}
+                          {poll.status === 'ENDED' && winner && (
+                            <div className="mt-6 pt-6 border-t border-white/10 text-center">
+                              <p className="text-sm text-gray-500 uppercase tracking-widest">
+                                Official Winner: <span className="text-yellow-400 font-bold text-lg">{winner.name}</span>
+                              </p>
+                            </div>
+                          )}
+
                         </div>
                       );
                     })
@@ -289,7 +271,65 @@ const AdminPanel = () => {
               </div>
             )}
 
-            {/* STUDENT REGISTRY */}
+            {/* --- VERIFICATION TAB --- */}
+            {activeTab === 'VERIFY' && (
+              <div className="space-y-6">
+                {pendingUsers.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-600 py-32">
+                    <Check className="w-24 h-24 mb-8 opacity-30" />
+                    <p className="text-3xl uppercase tracking-widest font-bold">Queue Empty</p>
+                    <p className="text-sm mt-4">All submissions processed</p>
+                  </div>
+                ) : (
+                  pendingUsers.map(user => (
+                    <div
+                      key={user.id}
+                      className="border border-gray-700 bg-black p-8 flex flex-col md:flex-row items-center justify-between gap-8 hover:border-white transition-all"
+                    >
+                      <div className="flex items-center gap-8">
+                        <div
+                          className="w-24 h-24 bg-gray-800 border-2 border-gray-600 cursor-zoom-in overflow-hidden group relative"
+                          onClick={() => setSelectedIdImage(user.idImageUrl)}
+                        >
+                          {user.idImageUrl ? (
+                            <img src={user.idImageUrl} alt="ID" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="flex items-center justify-center h-full text-gray-500">
+                              <List size={28} />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold uppercase">{user.name}</div>
+                          <div className="text-sm text-gray-400 font-mono mt-2">
+                            {user.studentId} • {user.department.replace('_', ' ')}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-6">
+                        <Button
+                          variant="secondary"
+                          onClick={() => verifyUser(user.id, false)}
+                          className="px-10 py-3 text-lg"
+                        >
+                          <X size={18} className="mr-2" /> Reject
+                        </Button>
+                        <Button
+                          onClick={() => verifyUser(user.id, true)}
+                          className="px-10 py-3 text-lg bg-green-900 hover:bg-green-800 border-green-700"
+                        >
+                          <Check size={18} className="mr-2" /> Approve
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* --- REGISTRY TAB --- */}
             {activeTab === 'STUDENTS' && (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-base">
@@ -331,7 +371,6 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        {/* RIGHT: Audit + Stats */}
         <div className="lg:col-span-1 flex flex-col gap-8">
           <div className="border-2 border-white/40 p-10 text-center bg-black/60">
             <h3 className="text-sm uppercase text-gray-500 tracking-widest mb-4">Registered Population</h3>
@@ -344,7 +383,6 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        {/* ID Image Modal */}
         {selectedIdImage && (
           <div
             className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-10 cursor-zoom-out"

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useApp } from '../store';
 import { LogOut, ShieldCheck, Settings as SettingsIcon } from 'lucide-react';
@@ -33,10 +32,9 @@ const Layout = ({ children }) => {
             </span>
           </div>
 
-          {/* User Controls */}
           {currentUser && (
             <div className="flex items-center gap-4">
-              {/* User Info (desktop) */}
+       
               <div className="flex flex-col items-end hidden md:flex">
                 <span className="text-xs text-gray-500 uppercase tracking-widest">
                   Logged in as
@@ -47,10 +45,8 @@ const Layout = ({ children }) => {
                 </span>
               </div>
 
-              {/* Divider */}
               <div className="h-6 w-px bg-gray-800 mx-2 hidden md:block" />
 
-              {/* Settings Button */}
               <Link
                 to="/settings"
                 className={`border p-2 transition-all duration-200 ${
@@ -63,7 +59,6 @@ const Layout = ({ children }) => {
                 <SettingsIcon size={16} />
               </Link>
 
-              {/* Logout Button */}
               <button
                 onClick={logout}
                 className="border border-white/50 p-2 hover:bg-white hover:text-black transition-all duration-200"
@@ -76,17 +71,11 @@ const Layout = ({ children }) => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow container mx-auto p-4 md:p-8">
         {children}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 p-6 text-center">
-        <p className="text-xs text-gray-600 uppercase tracking-widest">
-          System Version 5.0 • Immutable Campus Voting • Ledger Active
-        </p>
-      </footer>
+     
     </div>
   );
 };

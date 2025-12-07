@@ -44,3 +44,27 @@ export const createPoll = async (req, res) => {
   });
   res.status(201).json(poll);
 };
+
+export const togglePollStatus = async (req, res) => {
+  try {
+    const { pollId, status } = req.body;
+    
+    if (!['UPCOMING', 'ACTIVE', 'ENDED'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const poll = await Poll.findByIdAndUpdate(
+      pollId, 
+      { status }, 
+      { new: true } 
+    );
+
+    if (!poll) {
+      return res.status(404).json({ message: 'Poll not found' });
+    }
+
+    res.json(poll);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

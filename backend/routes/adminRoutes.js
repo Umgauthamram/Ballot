@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { uploadId, verifyUser, getAllUsers, createPoll } from '../controllers/adminController.js';
+import { uploadId, verifyUser, getAllUsers, createPoll, togglePollStatus } from '../controllers/adminController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -17,8 +17,13 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post('/upload-id', protect, upload.single('idCard'), uploadId);
+
 router.patch('/verify', protect, admin, verifyUser);
+
 router.get('/users', protect, admin, getAllUsers);
+
 router.post('/poll', protect, admin, createPoll);
+
+router.patch('/poll-status', protect, admin, togglePollStatus);
 
 export default router;

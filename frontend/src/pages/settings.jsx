@@ -33,9 +33,8 @@ const Settings = () => {
         <ChangePasswordForm onChangePassword={changePassword} />
       </div>
 
-      {/* Footer Note */}
       <div className="text-center text-xs text-gray-600 uppercase tracking-widest border-t border-white/10 pt-8 mt-20">
-        BALLOT_SYS_V5.0 • Immutable Campus Voting • All identity data stored off-chain for privacy
+        BALLOT • Immutable Campus Voting • All identity data stored off-chain for privacy
       </div>
     </div>
   );
