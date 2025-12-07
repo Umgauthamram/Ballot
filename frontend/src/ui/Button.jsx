@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Button = ({ 
+const button = ({ 
   children, 
   variant = 'primary', 
   isLoading = false, 
@@ -32,4 +32,4 @@ const Button = ({
   );
 };
 
-export default Button;
+export default button;

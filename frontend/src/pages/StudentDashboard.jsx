@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../store';
-import Button from '../ui/button';
+import Button from '../ui/Button';
 import LoadingOverlay from '../Layout/LoadingOverlay';
 import {
   AlertTriangle,
