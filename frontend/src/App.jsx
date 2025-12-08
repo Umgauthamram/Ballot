@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+
 import { AppProvider } from './store';
 import Layout from './Layout/layout';
 import Landing from './pages/Landing';
@@ -16,6 +18,21 @@ import ProtectedRoute from './protectedRoute';
 const App = () => {
   return (
     <AppProvider>
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          style: {
+            borderRadius: '0px',
+            background: '#000',
+            color: '#fff',
+            border: '1px solid #333',
+            fontFamily: 'monospace',
+            textTransform: 'uppercase',
+            fontSize: '12px'
+          },
+        }}
+      />
+      
       <Router>
         <Routes>
           <Route path="/" element={<Landing />} />
