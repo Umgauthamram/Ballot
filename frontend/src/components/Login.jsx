@@ -1,30 +1,44 @@
 import React, { useState } from 'react';
 import { useApp } from '../store';
 import Button from '../ui/Button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link  } from 'react-router-dom';
 import { ArrowRight, ChevronLeft } from 'lucide-react';
-import { Link } from "react-router-dom";
+import toast from 'react-hot-toast';
+
 
 const Login = () => {
-  const { login, currentUser } = useApp();
+  const { login } = useApp();
   const navigate = useNavigate(); 
 
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = login(id, password);
+    setLoading(true);
 
-    if (success) {
-      if (currentUser?.isAdmin) {
-        navigate('/admin');
+    try {
+      const success = await login(id, password);
+
+      if (success) {
+        toast.success("IDENTITY VERIFIED"); 
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        
+        if (user?.isAdmin) {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
-        navigate('/dashboard');
+        toast.error("ACCESS DENIED: INVALID CREDENTIALS");
+        setPassword(''); 
       }
-    } else {
-      setError('INVALID CREDENTIALS • ACCESS DENIED');
+    } catch (err) {
+      toast.error("SYSTEM ERROR: CONNECTION FAILED");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,7 +66,7 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-8">
             <input
               type="text"
-              placeholder="STUDENT ID / EMAIL"
+              placeholder=" EMAIL"
               value={id}
               onChange={(e) => setId(e.target.value)}
               className="w-full bg-transparent border-b-2 border-gray-700 p-4 text-xl font-mono focus:border-white outline-none transition-colors"
