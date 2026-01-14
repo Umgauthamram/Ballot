@@ -1,204 +1,5 @@
-// import React, { createContext, useContext, useState, useEffect } from 'react';
-// import {
-//   INITIAL_POLLS,
-//   INITIAL_USERS,
-//   INITIAL_TRANSACTIONS,
-//   INITIAL_VOTE_HISTORY,
-//   generateHash,
-//   getCurrentTime
-// } from './services/mockServices.js';
-
-// const AppContext = createContext(undefined);
-
-// export const AppProvider = ({ children }) => {
-//   const [currentUser, setCurrentUser] = useState(null);
-//   const [users, setUsers] = useState(INITIAL_USERS);
-//   const [polls, setPolls] = useState(INITIAL_POLLS);
-//   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
-//   const [voteHistory, setVoteHistory] = useState(INITIAL_VOTE_HISTORY);
-//   const [currentView, setCurrentView] = useState('LANDING');
-
-//   useEffect(() => {
-//     const savedUser = localStorage.getItem('currentUser');
-//     if (savedUser) {
-//       try {
-//         const user = JSON.parse(savedUser);
-//         setCurrentUser(user);
-//       } catch (e) {
-//         localStorage.removeItem('currentUser');
-//       }
-//     }
-//   }, []);
-
-//   const setView = (view) => setCurrentView(view);
-
-//   const login = (identifier, password) => {
-//     const user = users.find(u =>
-//       (u.studentId === identifier || u.email === identifier) &&
-//       u.password === password
-//     );
-
-//     if (user) {
-//       setCurrentUser(user);
-//       localStorage.setItem('currentUser', JSON.stringify(user)); 
-//       setView(user.isAdmin ? 'ADMIN_PANEL' : 'STUDENT_DASHBOARD');
-//       return true;
-//     }
-//     return false;
-//   };
-
-//   const signup = (data) => {
-//     const newUser = {
-//       id: `u${Date.now()}`,
-//       name: data.name || 'Anonymous Voter',
-//       studentId: data.studentId || `TEMP${Date.now()}`,
-//       email: data.email || '',
-//       department: data.department || 'GENERAL',
-//       collegeName: 'Polytechnic Institute',
-//       status: 'unverified',
-//       password: data.password || 'password',
-//       votedPollIds: [],
-//       isAdmin: false
-//     };
-//     setUsers(prev => [...prev, newUser]);
-//   };
-
-//   const logout = () => {
-//     setCurrentUser(null);
-//     localStorage.removeItem('currentUser'); 
-//     setView('LANDING');
-//   };
-
-// const uploadId = async (file) => {
-//     await new Promise(res => setTimeout(res, 1500));
-//     if (currentUser) {
-//       const updatedUser = {
-//         ...currentUser,
-//         status: 'pending',
-//         idImageUrl: URL.createObjectURL(file)
-//       };
-//       setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
-//       setCurrentUser(updatedUser);
-//       localStorage.setItem('currentUser', JSON.stringify(updatedUser)); // ← Persist
-//     }
-//   };
-
-//   const verifyUser = (userId, isApproved) => {
-//     setUsers(prev => prev.map(u =>
-//       u.id === userId
-//         ? { ...u, status: isApproved ? 'verified' : 'rejected' }
-//         : u
-//     ));
-//   };
-
-//   const createPoll = (pollData) => {
-//     const newPoll = {
-//       id: `p${Date.now()}`,
-//       title: pollData.title,
-//       description: pollData.description,
-//       eligibility: pollData.eligibility,
-//       status: 'UPCOMING',
-//       candidates: pollData.candidates.map((name, idx) => ({
-//         id: `c${Date.now()}-${idx}`,
-//         name,
-//         manifesto: 'Manifesto pending approval...',
-//         voteCount: 0
-//       }))
-//     };
-//     setPolls(prev => [...prev, newPoll]);
-//   };
-
-//   const togglePollStatus = (pollId, status) => {
-//     setPolls(prev => prev.map(p => p.id === pollId ? { ...p, status } : p));
-//   };
-
-//   const castVote = async (pollId, candidateId) => {
-//     await new Promise(res => setTimeout(res, 3000));
-//     const poll = polls.find(p => p.id === pollId);
-//     if (!poll || !currentUser) throw new Error('Invalid vote');
-
-//     const candidate = poll.candidates.find(c => c.id === candidateId);
-//     if (!candidate) throw new Error('Candidate not found');
-
-//     setPolls(prev => prev.map(p =>
-//       p.id === pollId
-//         ? {
-//             ...p,
-//             candidates: p.candidates.map(c =>
-//               c.id === candidateId ? { ...c, voteCount: c.voteCount + 1 } : c
-//             )
-//           }
-//         : p
-//     ));
-
-//     const newTx = {
-//       hash: generateHash(),
-//       pollTitle: poll.title,
-//       candidateName: candidate.name,
-//       timestamp: getCurrentTime(),
-//       voterHash: generateHash()
-//     };
-//     setTransactions(prev => [newTx, ...prev]);
-
-//     const newRecord = {
-//       pollId: poll.id,
-//       pollTitle: poll.title,
-//       candidateName: candidate.name,
-//       timestamp: getCurrentTime()
-//     };
-//     setVoteHistory(prev => [newRecord, ...prev]);
-
-//     const updatedUser = {
-//       ...currentUser,
-//       votedPollIds: [...currentUser.votedPollIds, pollId]
-//     };
-//     setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
-//     setCurrentUser(updatedUser);
-//     localStorage.setItem('currentUser', JSON.stringify(updatedUser)); 
-//   };
-
-//   const changePassword = (oldPw, newPw) => {
-//     if (!currentUser || oldPw !== currentUser.password) return false;
-//     const updatedUser = { ...currentUser, password: newPw };
-//     setUsers(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
-//     setCurrentUser(updatedUser);
-//     localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-//     return true;
-//   };
-
-//   return (
-//     <AppContext.Provider value={{
-//       currentUser,
-//       users,
-//       polls,
-//       transactions,
-//       voteHistory,
-//       currentView,
-//       setView,
-//       login,
-//       signup,
-//       logout,
-//       uploadId,
-//       verifyUser,
-//       createPoll,
-//       togglePollStatus,
-//       castVote,
-//       changePassword
-//     }}>
-//       {children}
-//     </AppContext.Provider>
-//   );
-// };
-
-// export const useApp = () => {
-//   const context = useContext(AppContext);
-//   if (!context) throw new Error('useApp must be used within AppProvider');
-//   return context;
-// };
-
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as API from './services/apiServices'; 
+import * as API from './services/apiServices';
 
 const AppContext = createContext(undefined);
 
@@ -206,52 +7,76 @@ export const AppProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [polls, setPolls] = useState([]);
-  const [transactions, setTransactions] = useState([]); 
+  const [transactions, setTransactions] = useState([]);
+  const [departments, setDepartments] = useState([]); // Added missing state
+  const [currentView, setCurrentView] = useState('LANDING');
 
   const [voteHistory, setVoteHistory] = useState(() => {
     const savedHistory = localStorage.getItem('voteHistory');
     return savedHistory ? JSON.parse(savedHistory) : [];
   });
 
-  const [currentView, setCurrentView] = useState('LANDING');
-  const [loading, setLoading] = useState(false);
-
+  // Restore session
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
-    }
-  }, []);
-
-  useEffect(() => {
-    const loadData = async () => {
-      if (currentUser) {
+    const initSession = async () => {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
         try {
-          const pollsData = await API.fetchPollsAPI();
-          const formattedPolls = pollsData.map(p => ({ ...p, id: p._id }));
-          setPolls(formattedPolls);
+          const user = JSON.parse(savedUser);
+          setCurrentUser(user);
 
-          if (currentUser.isAdmin) {
-            const usersData = await API.fetchAllUsersAPI();
-            const formattedUsers = usersData.map(u => ({ ...u, id: u._id }));
-            setUsers(formattedUsers);
+          try {
+            const freshUser = await API.fetchCurrentUserAPI();
+            freshUser.token = user.token;
+            setCurrentUser(freshUser);
+            localStorage.setItem('currentUser', JSON.stringify(freshUser));
+          } catch (err) {
+            console.error("Session refresh failed", err);
+            if (err.response?.status === 401) localStorage.removeItem('currentUser');
           }
-        } catch (error) {
-          console.error("Failed to load data", error);
+        } catch (e) {
+          localStorage.removeItem('currentUser');
         }
       }
     };
-    loadData();
-  }, [currentUser, currentView]); 
+    initSession();
+  }, []);
 
+  // Fetch Data based on User Role
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentUser) return;
+
+      try {
+        // Always fetch polls for authenticated users
+        const pollsData = await API.fetchPollsAPI();
+        setPolls(pollsData.map(p => ({ ...p, id: p._id })));
+
+        // Fetch Admin specific data
+        if (currentUser.isAdmin) {
+          const [usersData, deptsData] = await Promise.all([
+            API.fetchAllUsersAPI(),
+            API.fetchDepartmentsAPI()
+          ]);
+          setUsers(usersData.map(u => ({ ...u, id: u._id })));
+          setDepartments(deptsData);
+        }
+      } catch (error) {
+        console.error("Failed to load data", error);
+      }
+    };
+
+    fetchData();
+  }, [currentUser]);
 
   const setView = (view) => setCurrentView(view);
 
   const login = async (identifier, password) => {
     try {
       const user = await API.loginAPI(identifier, password);
+      // Ensure votedPollIds exists
       user.votedPollIds = user.votedPollIds || [];
-      
+
       setCurrentUser(user);
       localStorage.setItem('currentUser', JSON.stringify(user));
       setView(user.isAdmin ? 'ADMIN_PANEL' : 'STUDENT_DASHBOARD');
@@ -264,7 +89,7 @@ export const AppProvider = ({ children }) => {
 
   const signup = async (data) => {
     try {
-      const user = await API.signupAPI(data);
+      await API.signupAPI(data);
       return true;
     } catch (error) {
       console.error(error);
@@ -278,30 +103,24 @@ export const AppProvider = ({ children }) => {
     setView('LANDING');
   };
 
-  const uploadId = async (file) => {
+  const generateUsers = async (usersData) => {
     try {
-      setLoading(true);
-      const { url } = await API.uploadIdAPI(file);
-      
-      const updatedUser = { ...currentUser, status: 'pending', idCardUrl: url };
-      setCurrentUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-    } catch (error) {
-      console.error(error);
-      alert('Upload failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+      const result = await API.generateUsersAPI(usersData);
 
-  const verifyUser = async (userId, isApproved) => {
-    try {
-      await API.verifyUserAPI(userId, isApproved);
-      setUsers(prev => prev.map(u => 
-        u.id === userId ? { ...u, status: isApproved ? 'verified' : 'rejected' } : u
-      ));
+      if (currentUser?.isAdmin) {
+        // Refresh users list
+        const usersData = await API.fetchAllUsersAPI();
+        const formattedUsers = usersData.map(u => ({ ...u, id: u._id }));
+        setUsers(formattedUsers);
+
+        // Refresh departments in case new ones were added
+        const deptsData = await API.fetchDepartmentsAPI();
+        setDepartments(deptsData);
+      }
+      return { success: true, ...result };
     } catch (error) {
       console.error(error);
+      return { success: false, message: error.response?.data?.message || 'Generation failed' };
     }
   };
 
@@ -315,33 +134,39 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-
-
   const castVote = async (pollId, candidateId) => {
     try {
       await API.castVoteAPI(pollId, candidateId);
 
-      const updatedUser = { 
-        ...currentUser, 
-        votedPollIds: [...currentUser.votedPollIds, pollId] 
+      // Update local user state
+      const updatedUser = {
+        ...currentUser,
+        votedPollIds: [...(currentUser.votedPollIds || []), pollId]
       };
       setCurrentUser(updatedUser);
       localStorage.setItem('currentUser', JSON.stringify(updatedUser));
 
-      const poll = polls.find(p => p.id === pollId);
+      // Refresh polls to show updated counts
+      const pollsData = await API.fetchPollsAPI();
+      const updatedPolls = pollsData.map(p => ({ ...p, id: p._id }));
+      setPolls(updatedPolls);
+
+      // Generate local history record
+      const poll = updatedPolls.find(p => p.id === pollId);
       const candidate = poll?.candidates.find(c => (c._id === candidateId || c.id === candidateId));
-      
+
       const newRecord = {
         pollId: pollId,
         pollTitle: poll?.title || "Unknown Election",
         candidateName: candidate?.name || "Unknown Candidate",
-        timestamp: new Date().toLocaleString() 
+        timestamp: new Date().toLocaleString()
       };
 
       const updatedHistory = [newRecord, ...voteHistory];
       setVoteHistory(updatedHistory);
       localStorage.setItem('voteHistory', JSON.stringify(updatedHistory));
 
+      // Mock Transaction for UI (since we aren't fully using blockchain return values yet)
       const newTx = {
         hash: "0x" + Math.random().toString(16).substr(2, 40),
         pollTitle: poll?.title,
@@ -356,11 +181,11 @@ export const AppProvider = ({ children }) => {
     }
   };
 
- const togglePollStatus = async (pollId, status) => {
+  const togglePollStatus = async (pollId, status) => {
     try {
       await API.togglePollStatusAPI(pollId, status);
-      
-      setPolls(prev => prev.map(p => 
+
+      setPolls(prev => prev.map(p =>
         p.id === pollId ? { ...p, status } : p
       ));
     } catch (error) {
@@ -369,9 +194,23 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const changePassword = () => {
-    console.log("Feature pending API implementation");
-    return true;
+  const changePassword = async (oldPw, newPw) => {
+    try {
+      await API.changePasswordAPI(oldPw, newPw);
+
+      // Update local state to reflect change immediately
+      const updatedUser = { ...currentUser, isPasswordChanged: true };
+      setCurrentUser(updatedUser);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+
+      return { success: true };
+    } catch (error) {
+      console.error(error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update password"
+      };
+    }
   };
 
   return (
@@ -380,18 +219,27 @@ export const AppProvider = ({ children }) => {
       users,
       polls,
       transactions,
+      departments,
       voteHistory,
       currentView,
       setView,
       login,
       signup,
       logout,
-      uploadId,
-      verifyUser,
+      generateUsers,
       createPoll,
       togglePollStatus,
       castVote,
-      changePassword
+      changePassword,
+      // Export API functions for components that might need them directly
+      signupAPI: API.signupAPI,
+      fetchCurrentUserAPI: API.fetchCurrentUserAPI,
+      generateUsersAPI: API.generateUsersAPI,
+      createPollAPI: API.createPollAPI,
+      fetchAllUsersAPI: API.fetchAllUsersAPI,
+      fetchDepartmentsAPI: API.fetchDepartmentsAPI,
+      fetchPollsAPI: API.fetchPollsAPI,
+      castVoteAPI: API.castVoteAPI,
     }}>
       {children}
     </AppContext.Provider>

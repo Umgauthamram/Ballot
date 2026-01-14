@@ -2,9 +2,10 @@ import React from 'react';
 import { useApp } from '../store';
 import { LogOut, ShieldCheck, Settings as SettingsIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ChangePassword from '../components/ChangePassword';
 
 const Layout = ({ children }) => {
-  const { currentUser, logout, setView, currentView } = useApp();
+  const { currentUser, logout, setView, currentView, changePassword } = useApp();
 
   const handleLogoClick = () => {
     if (currentUser) {
@@ -15,12 +16,26 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-mono flex flex-col">
-    
+    <div className="min-h-screen bg-black text-white font-mono flex flex-col relative">
+
+      {currentUser && !currentUser.isAdmin && currentUser.isPasswordChanged === false && (
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="bg-black border-2 border-red-500 shadow-[0_0_50px_rgba(255,0,0,0.3)] max-w-2xl w-full p-1">
+            <div className="bg-red-500 text-black font-bold uppercase p-4 text-center tracking-widest mb-1">
+              ⚠️ Security Alert: Password Update Required
+            </div>
+            <ChangePassword onChangePassword={changePassword} />
+            <div className="text-center pb-4 text-gray-500 text-xs uppercase">
+              You must update your credentials to proceed
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="border-b border-white/20 p-4 sticky top-0 z-40 bg-black/95 backdrop-blur-md">
         <div className="container mx-auto flex justify-between items-center">
-         
-          <div 
+
+          <div
             className="flex items-center gap-3 cursor-pointer select-none"
             onClick={handleLogoClick}
           >
@@ -34,7 +49,7 @@ const Layout = ({ children }) => {
 
           {currentUser && (
             <div className="flex items-center gap-4">
-       
+
               <div className="flex flex-col items-end hidden md:flex">
                 <span className="text-xs text-gray-500 uppercase tracking-widest">
                   Logged in as
@@ -49,11 +64,10 @@ const Layout = ({ children }) => {
 
               <Link
                 to="/settings"
-                className={`border p-2 transition-all duration-200 ${
-                  currentView === 'SETTINGS'
-                    ? 'bg-white text-black border-white'
-                    : 'border-white/50 hover:bg-white hover:text-black'
-                }`}
+                className={`border p-2 transition-all duration-200 ${currentView === 'SETTINGS'
+                  ? 'bg-white text-black border-white'
+                  : 'border-white/50 hover:bg-white hover:text-black'
+                  }`}
                 title="Settings"
               >
                 <SettingsIcon size={16} />
@@ -75,7 +89,7 @@ const Layout = ({ children }) => {
         {children}
       </main>
 
-     
+
     </div>
   );
 };

@@ -15,6 +15,7 @@ import {
   Trophy,
   Crown
 } from 'lucide-react';
+import Countdown from '../components/Countdown';
 
 const StudentDashboard = () => {
   const { currentUser, polls, castVote, uploadId, voteHistory } = useApp();
@@ -35,8 +36,8 @@ const StudentDashboard = () => {
 
   const activePolls = eligiblePolls.filter(p => p.status === 'ACTIVE');
   const upcomingPolls = eligiblePolls.filter(p => p.status === 'UPCOMING');
-  
-  const endedPolls = polls.filter(p => p.status === 'ENDED' && 
+
+  const endedPolls = polls.filter(p => p.status === 'ENDED' &&
     (p.eligibility === 'ALL' || p.eligibility === currentUser.department)
   );
 
@@ -190,9 +191,16 @@ const StudentDashboard = () => {
                     <span className="bg-green-900/50 text-green-400 text-xs px-3 py-1 uppercase font-bold border border-green-800">
                       Live
                     </span>
-                    <span className="text-xs text-gray-500 uppercase">
-                      {poll.eligibility === 'ALL' ? 'All Students' : poll.eligibility.replace('_', ' ')}
-                    </span>
+                    <div className="text-right">
+                      <span className="text-xs text-gray-500 uppercase block">
+                        {poll.eligibility === 'ALL' ? 'All Students' : poll.eligibility.replace('_', ' ')}
+                      </span>
+                      {poll.endTime && (
+                        <span className="text-xs text-yellow-500 font-mono block mt-1 flex justify-end">
+                          Ends: <Countdown targetDate={poll.endTime} showIcon={false} />
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <h3 className="text-2xl font-bold uppercase mb-4 leading-tight">
                     {poll.title}
@@ -227,7 +235,7 @@ const StudentDashboard = () => {
               {selectedPoll.candidates.map(candidate => {
                 const cId = candidate._id || candidate.id;
                 const isSelected = confirmCandidate === cId;
-                
+
                 const totalVotes = getTotalVotes(selectedPoll);
                 const percentage = totalVotes === 0 ? 0 : Math.round((candidate.voteCount / totalVotes) * 100);
 
@@ -236,8 +244,8 @@ const StudentDashboard = () => {
                     key={cId}
                     onClick={() => setConfirmCandidate(cId)}
                     className={`border-2 p-10 cursor-pointer transition-all duration-300 relative overflow-hidden flex flex-col justify-between ${isSelected
-                        ? 'bg-white text-black border-white'
-                        : 'border-gray-700 hover:border-white bg-black'
+                      ? 'bg-white text-black border-white'
+                      : 'border-gray-700 hover:border-white bg-black'
                       }`}
                   >
                     <div>
@@ -261,7 +269,7 @@ const StudentDashboard = () => {
 
                       {/* WHITE STATUS BAR */}
                       <div className="w-full h-4 bg-gray-800 border border-gray-600">
-                        <div 
+                        <div
                           className={`h-full transition-all duration-1000 ${isSelected ? 'bg-black' : 'bg-white'}`}
                           style={{ width: `${percentage}%` }}
                         />
@@ -319,11 +327,11 @@ const StudentDashboard = () => {
             <div className="space-y-12">
               {endedPolls.map(poll => {
                 const totalVotes = getTotalVotes(poll);
-                
+
                 // Determine Winner Object
-                const winner = poll.candidates.reduce((prev, current) => 
+                const winner = poll.candidates.reduce((prev, current) =>
                   (prev.voteCount > current.voteCount) ? prev : current
-                , poll.candidates[0]);
+                  , poll.candidates[0]);
 
                 // Normalize Winner ID for comparison
                 const winnerId = winner._id || winner.id;
@@ -341,7 +349,7 @@ const StudentDashboard = () => {
                       {poll.candidates.map(candidate => {
                         // Normalize Candidate ID
                         const cId = candidate._id || candidate.id;
-                        
+
                         // STRICT COMPARISON
                         const isWinner = cId === winnerId && totalVotes > 0; // Check totalVotes to avoid crown on 0-0 ties if preferred
                         const percentage = totalVotes === 0 ? 0 : Math.round((candidate.voteCount / totalVotes) * 100);
@@ -364,8 +372,8 @@ const StudentDashboard = () => {
 
                             {/* Result Bar */}
                             <div className="w-full h-6 bg-gray-900 border border-gray-700 relative">
-                              <div 
-                                className={`h-full transition-all duration-1000 ${isWinner ? 'bg-yellow-400' : 'bg-white'}`}
+                              <div
+                                className={`h-full transition-all duration-1000 ${isWinner ? 'bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'}`}
                                 style={{ width: `${percentage}%` }}
                               />
                             </div>

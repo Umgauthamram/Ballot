@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import  Button from '../ui/Button';
+import toast from 'react-hot-toast';
+import Button from '../ui/Button';
 
 const ChangePassword = ({ onChangePassword }) => {
   const [form, setForm] = useState({
@@ -10,27 +11,31 @@ const ChangePassword = ({ onChangePassword }) => {
   });
   const [message, setMessage] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (form.new !== form.confirm) {
       setMessage({ type: 'error', text: 'NEW PASSWORDS DO NOT MATCH' });
+      toast.error("Passwords do not match");
       return;
     }
 
     if (form.new.length < 4) {
       setMessage({ type: 'error', text: 'PASSWORD TOO SHORT' });
+      toast.error("Password must be at least 4 chars");
       return;
     }
 
-    const success = onChangePassword(form.old, form.new);
+    const result = await onChangePassword(form.old, form.new);
 
-    if (success) {
+    if (result.success) {
       setMessage({ type: 'success', text: 'PASSWORD PROTOCOL UPDATED' });
+      toast.success("Password Updated Successfully");
       setForm({ old: '', new: '', confirm: '' });
       setTimeout(() => setMessage(null), 4000);
     } else {
-      setMessage({ type: 'error', text: 'INCORRECT CURRENT PASSWORD' });
+      setMessage({ type: 'error', text: result.message || 'UPDATE FAILED' });
+      toast.error(result.message || "Update Failed");
     }
   };
 
@@ -47,11 +52,10 @@ const ChangePassword = ({ onChangePassword }) => {
       </div>
 
       {message && (
-        <div className={`mb-6 p-4 text-center text-xs uppercase font-bold border ${
-          message.type === 'success' 
-            ? 'bg-green-900/30 border-green-500 text-green-400' 
-            : 'bg-red-900/30 border-red-500 text-red-400'
-        }`}>
+        <div className={`mb-6 p-4 text-center text-xs uppercase font-bold border ${message.type === 'success'
+          ? 'bg-green-900/30 border-green-500 text-green-400'
+          : 'bg-red-900/30 border-red-500 text-red-400'
+          }`}>
           {message.text}
         </div>
       )}

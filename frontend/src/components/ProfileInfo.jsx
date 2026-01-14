@@ -27,10 +27,10 @@ const ProfileInfo = ({ user }) => {
           <label className="block text-xs text-gray-500 uppercase mb-1">Email Address</label>
           <div className="border-b border-gray-700 pb-1 text-white">{user.email}</div>
         </div>
-        {/* <div>
+        <div>
           <label className="block text-xs text-gray-500 uppercase mb-1">Institution</label>
           <div className="border-b border-gray-700 pb-1 text-white">{user.collegeName}</div>
-        </div> */}
+        </div>
         {!user.isAdmin && (
           <div>
             <label className="block text-xs text-gray-500 uppercase mb-1">Department</label>
@@ -41,11 +41,10 @@ const ProfileInfo = ({ user }) => {
         )}
         <div>
           <label className="block text-xs text-gray-500 uppercase mb-1">Access Level</label>
-          <div className={`inline-block px-3 py-1 text-xs uppercase font-bold border mt-2 ${
-            user.isAdmin 
-              ? 'border-green-500 text-green-400' 
+          <div className={`inline-block px-3 py-1 text-xs uppercase font-bold border mt-2 ${user.isAdmin
+              ? 'border-green-500 text-green-400'
               : 'border-blue-500 text-blue-400'
-          }`}>
+            }`}>
             {user.isAdmin ? 'SYSTEM ADMINISTRATOR' : 'VERIFIED VOTER'}
           </div>
         </div>
