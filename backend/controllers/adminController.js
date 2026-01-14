@@ -15,42 +15,28 @@ const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, contractJSON.abi, wallet);
 
-export const uploadId = async (req, res) => {
-  try {
-    const userId = req.user.id; 
-    const imageUrl = `/uploads/${req.file.filename}`;
+import { sendCredentialsEmail } from '../utils/emailService.js';
+import bcrypt from 'bcryptjs';
 
-    await User.findByIdAndUpdate(userId, {
-      status: 'pending',
-      idCardUrl: imageUrl
-    });
-
-    res.json({ message: 'ID Uploaded', url: imageUrl });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export const verifyUser = async (req, res) => {
-  try {
-    const { userId, isApproved } = req.body;
-    const status = isApproved ? 'verified' : 'rejected';
-    
-    await User.findByIdAndUpdate(userId, { status });
-    res.json({ message: `User ${status}` });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+// generateUsers moved to userGenController.js
 
 export const getAllUsers = async (req, res) => {
   const users = await User.find({ role: 'STUDENT' }).select('-password');
   res.json(users);
 };
 
+export const getDepartments = async (req, res) => {
+  try {
+    const departments = await User.find().distinct('department');
+    res.json(departments);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // export const createPoll = async (req, res) => {
 //   const { title, description, eligibility, candidates } = req.body;
-  
+
 //   const formattedCandidates = candidates.map(name => ({ name, manifesto: "Standard Manifesto" }));
 
 //   const poll = await Poll.create({
@@ -60,58 +46,68 @@ export const getAllUsers = async (req, res) => {
 // };
 
 export const createPoll = async (req, res) => {
-  const { title, description, eligibility, candidates } = req.body;
-  
+  const { title, description, eligibility, candidates, durationInHours } = req.body;
+
   try {
-    console.log("1. Initiating Blockchain Transaction...");
-    
-    //Create on Blockchain First and We pass a dummy IPFS hash for now, and the candidate names
-    const tx = await contract.createPoll("ipfs_placeholder", candidates);
-    console.log(`   Tx Hash: ${tx.hash}`);
-    
-    // Wait for block confirmation
+    const formattedCandidates = candidates.map(name => ({ name, manifesto: "Standard Manifesto" }));
+
+    const startTime = new Date();
+    const endTime = new Date(startTime.getTime() + (durationInHours || 24) * 60 * 60 * 1000); // Default 24h
+
+    // 1. Create on Blockchain
+    console.log("Creating Poll on Blockchain...");
+    const pollMetadata = JSON.stringify({ title, description, eligibility }); // Simulating IPFS hash
+    const tx = await contract.createPoll(pollMetadata, candidates);
+    console.log("Tx Sent:", tx.hash);
+
     const receipt = await tx.wait();
-    console.log("   Block Confirmed!");
 
-    // B. Get the Poll ID from the Blockchain Event
-    const pollCount = await contract.pollCount();
-    const blockchainPollId = pollCount.toString();
+    // 2. Get Poll ID from Events
+    let blockchainId = null;
+    for (const log of receipt.logs) {
+      try {
+        const parsedLog = contract.interface.parseLog(log);
+        if (parsedLog.name === 'PollCreated') {
+          blockchainId = parsedLog.args.pollId.toString();
+          break;
+        }
+      } catch (e) {
+        // Ignore logs from other contracts or unparsable logs
+      }
+    }
 
-    console.log(`2. Creating Database Entry (Chain ID: ${blockchainPollId})...`);
+    if (!blockchainId) throw new Error("Failed to retrieve Blockchain Poll ID");
+    console.log("Blockchain Poll ID:", blockchainId);
 
-    const formattedCandidates = candidates.map(name => ({ 
-      name, 
-      manifesto: "Standard Manifesto" 
-    }));
-
+    // 3. Save to MongoDB
     const poll = await Poll.create({
-      title, 
-      description, 
-      eligibility, 
-      candidates: formattedCandidates,
-      blockchainId: blockchainPollId
+      title, description, eligibility, candidates: formattedCandidates,
+      startTime, endTime, status: 'UPCOMING',
+      blockchainId: blockchainId
     });
 
     res.status(201).json(poll);
-
   } catch (error) {
-    console.error("Creation Failed:", error);
-    res.status(500).json({ message: "Blockchain Transaction Failed: " + error.message });
+    console.error("Poll Creation Failed:", error);
+    // Ensure headers aren't sent if they were already sent (though unlikely here)
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Failed to create election" });
+    }
   }
 };
 
 export const togglePollStatus = async (req, res) => {
   try {
     const { pollId, status } = req.body;
-    
+
     if (!['UPCOMING', 'ACTIVE', 'ENDED'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
     const poll = await Poll.findByIdAndUpdate(
-      pollId, 
-      { status }, 
-      { new: true } 
+      pollId,
+      { status },
+      { new: true }
     );
 
     if (!poll) {

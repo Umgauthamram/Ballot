@@ -33,14 +33,14 @@ const Landing = () => {
             <div className="w-16 h-px bg-current opacity-50 ml-4"></div>
           </Link>
 
-          <Link
+          {/* <Link
             to="/signup"
             className="group flex items-center gap-5 border border-white/30 px-10 py-5 hover:border-white/70 hover:text-white transition-all duration-300 text-sm uppercase tracking-widest text-gray-400"
           >
             <UserPlus size={20} className="group-hover:scale-110 transition-transform" />
             <span>Student Registration</span>
             <div className="w-16 h-px bg-current opacity-30 ml-4"></div>
-          </Link>
+          </Link> */}
         </div>
       </div>
 
